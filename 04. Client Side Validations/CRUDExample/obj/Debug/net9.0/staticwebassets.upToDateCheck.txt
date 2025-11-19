@@ -1,0 +1,2 @@
+D:\Github Repos\DotNET(Deep-Dive)\AspNetCore Mastery\15. Tag Helpers\01. Form Tag Helpers\CRUDExample\wwwroot\StyleSheet.css
+wwwroot\StyleSheet.css
