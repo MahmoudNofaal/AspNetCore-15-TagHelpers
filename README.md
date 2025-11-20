@@ -1,250 +1,286 @@
-# ASP.NET Core MVC - Tag Helpers
+# ASP.NET Core MVC - Tag Helpers Complete Guide
 
-## Tag Helpers
-
-Tag helpers are a feature in ASP.NET Core MVC that allow you to extend HTML elements with server-side capabilities. They are C# classes that modify the behavior and output of HTML elements during the rendering process.
-
----
-
-## Benefits of Tag Helpers
-
-### HTML-Friendly Syntax
-
-Tag helpers look like standard HTML elements, making them easier to read and write than traditional HTML helpers.
-
-### Strong Typing
-
-Tag helpers offer compile-time type safety and IntelliSense support, catching errors early in development.
-
-### Code Reuse
-
-They can be easily reused across different views and projects.
-
-### Reduced Server Roundtrips
-
-Tag helpers execute on the server, allowing you to perform complex logic and data binding before the page is sent to the client.
-
-### Extensibility
-
-You can create your own custom tag helpers to meet specific needs.
+## Table of Contents
+1. [Introduction](#introduction)
+2. [Core Concepts](#core-concepts)
+3. [Built-in Tag Helpers](#built-in-tag-helpers)
+4. [CRUD Implementation](#crud-implementation)
+5. [Validation](#validation)
+6. [Custom Tag Helpers](#custom-tag-helpers)
+7. [Best Practices](#best-practices)
 
 ---
 
-## When to Use Tag Helpers
+## Introduction
 
-- **Form Handling**: Create forms and bind them to your models easily
-- **Links and URLs**: Generate links with correct routing information
-- **Caching**: Control how your views are cached
-- **Conditional Rendering**: Show or hide content based on conditions
-- **Custom Elements**: Build reusable custom UI components
+### What are Tag Helpers?
+
+Tag helpers are C# classes that extend HTML elements with server-side capabilities during the rendering process. They provide a more natural, HTML-friendly way to generate dynamic content compared to traditional HTML helpers.
+
+### Why Use Tag Helpers?
+
+**HTML-Friendly Syntax**
+- Look like standard HTML elements
+- Easier to read and write than HTML helpers
+- Better for designers and front-end developers
+
+**Strong Typing**
+- Compile-time type safety
+- Full IntelliSense support
+- Catches errors early in development
+
+**Maintainability**
+- Easier to understand and maintain
+- Natural integration with HTML
+- Consistent with modern web development practices
+
+### Tag Helpers vs HTML Helpers
+
+| Aspect | Tag Helpers | HTML Helpers |
+|--------|-------------|--------------|
+| **Syntax** | `<input asp-for="Name" />` | `@Html.TextBoxFor(m => m.Name)` |
+| **Readability** | HTML-like, intuitive | C# method calls |
+| **IntelliSense** | Full support | Limited |
+| **Mixing with HTML** | Seamless | Requires context switching |
+| **Learning Curve** | Easier for web developers | Easier for C# developers |
+
+**Recommendation**: Use Tag Helpers for all new ASP.NET Core projects.
 
 ---
 
-## Best Practices
+## Core Concepts
 
-### Namespace Management
+### Enabling Tag Helpers
 
-Keep tag helper namespaces organized:
+Add to `_ViewImports.cshtml`:
 
 ```csharp
 @addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
 ```
 
-### Readability
+### Common Attributes Reference
 
-Keep tag helper attributes concise and self-explanatory.
-
-### Performance
-
-Be mindful of the number of tag helpers used in a view, as they can impact rendering performance.
-
-### Testing
-
-Write unit tests for your custom tag helpers to ensure their correct behavior.
-
----
-
-## Things to Avoid
-
-- **Overusing Tag Helpers**: Use them for appropriate tasks, not for every HTML element
-- **Excessive Nesting**: Avoid deeply nested tag helpers, as it can make your code difficult to read
-- **Mixing Tag Helpers and HTML Helpers**: Try to use either tag helpers or HTML helpers consistently within a view to maintain a cleaner code structure
+| Attribute | Purpose | Example |
+|-----------|---------|---------|
+| `asp-for` | Bind to model property | `<input asp-for="Email" />` |
+| `asp-action` | Target action method | `<a asp-action="Index">` |
+| `asp-controller` | Target controller | `<a asp-controller="Home">` |
+| `asp-route-{param}` | Pass route parameter | `<a asp-route-id="@item.Id">` |
+| `asp-items` | Populate dropdown | `<select asp-items="@Model.Countries">` |
+| `asp-validation-for` | Field validation message | `<span asp-validation-for="Email">` |
+| `asp-validation-summary` | Validation summary | `<div asp-validation-summary="All">` |
+| `asp-append-version` | Cache busting | `<link asp-append-version="true" />` |
 
 ---
 
-## Important Tag Helpers with Examples
+## Built-in Tag Helpers
 
-### Anchor Tag Helper (&lt;a&gt;)
+### 1. Anchor Tag Helper (`<a>`)
 
+Generates links with automatic routing.
+
+**Basic Link**
 ```html
 <a asp-controller="Home" asp-action="Index">Home</a>
 ```
 
-- Generates a link to the `Index` action method in the `HomeController`
-- Automatically handles routing and URL generation
-
-**Additional Examples**:
-
+**With Route Parameter**
 ```html
-<!-- With route parameters -->
-<a asp-controller="Products" asp-action="Details" asp-route-id="@product.Id">View Details</a>
+<a asp-action="Details" asp-route-id="@product.Id">View Details</a>
+```
 
-<!-- With multiple route parameters -->
-<a asp-action="Search" asp-route-category="@category" asp-route-page="1">Search</a>
+**Multiple Parameters**
+```html
+<a asp-action="Search" 
+   asp-route-category="@category" 
+   asp-route-page="1">Search</a>
+```
 
-<!-- With fragment (anchor) -->
+**With Fragment (Anchor)**
+```html
 <a asp-action="Index" asp-fragment="section2">Jump to Section 2</a>
 ```
 
-### Form Tag Helper (&lt;form&gt;)
+---
 
+### 2. Form Tag Helper (`<form>`)
+
+Creates forms with automatic anti-forgery token handling.
+
+**Basic Form**
 ```html
 <form asp-controller="Products" asp-action="Create" method="post">
     <!-- form fields -->
 </form>
 ```
 
-- Creates a form that submits data to the `Create` action in the `ProductsController`
-- Handles anti-forgery tokens automatically for better security
-
-**Additional Examples**:
-
+**Edit Form with Route Parameter**
 ```html
-<!-- Form with route parameter -->
 <form asp-action="Edit" asp-route-id="@Model.Id" method="post">
     <!-- form fields -->
 </form>
+```
 
-<!-- Form for GET request (search) -->
+**Search Form (GET)**
+```html
 <form asp-action="Index" method="get">
     <input type="text" name="searchTerm" />
     <button type="submit">Search</button>
 </form>
 ```
 
-### Input Tag Helper (&lt;input&gt;)
+---
 
+### 3. Input Tag Helper (`<input>`)
+
+Binds input fields to model properties with automatic type detection.
+
+**Text Input**
 ```html
 <input asp-for="ProductName" class="form-control" />
 ```
 
-- Binds the input field to the `ProductName` property of your model
-- Automatically sets the input type (e.g., text, email, password) based on the property type
-
-**Additional Examples**:
-
+**Email (Auto-detected)**
 ```html
-<!-- Email input (automatically detected) -->
 <input asp-for="Email" class="form-control" />
+<!-- Generates: <input type="email" ... /> -->
+```
 
-<!-- Date input -->
+**Date Input**
+```html
 <input asp-for="DateOfBirth" type="date" class="form-control" />
+```
 
-<!-- Checkbox -->
-<input asp-for="IsActive" type="checkbox" />
-
-<!-- Hidden field -->
-<input asp-for="Id" type="hidden" />
-
-<!-- Password input -->
+**Password**
+```html
 <input asp-for="Password" type="password" class="form-control" />
 ```
 
-### Select Tag Helper (&lt;select&gt;)
-
+**Checkbox**
 ```html
-<select asp-for="CategoryId" asp-items="Model.Categories"></select>
+<input asp-for="IsActive" type="checkbox" />
 ```
 
-- Creates a dropdown list bound to the `CategoryId` property
-- `asp-items` takes a collection of items to populate the dropdown
-
-**Additional Examples**:
-
+**Hidden Field**
 ```html
-<!-- With ViewBag -->
+<input asp-for="Id" type="hidden" />
+```
+
+---
+
+### 4. Select Tag Helper (`<select>`)
+
+Creates dropdown lists bound to model properties.
+
+**Basic Dropdown**
+```html
+<select asp-for="CategoryId" asp-items="Model.Categories" class="form-control">
+    <option value="">-- Select Category --</option>
+</select>
+```
+
+**With ViewBag**
+```html
 <select asp-for="CountryId" asp-items="@ViewBag.Countries" class="form-control">
     <option value="">-- Select Country --</option>
 </select>
-
-<!-- Multiple selection -->
-<select asp-for="SelectedCategories" asp-items="@Model.Categories" multiple class="form-control"></select>
-
-<!-- Using SelectListGroup -->
-<select asp-for="ProductId" asp-items="@Model.GroupedProducts"></select>
 ```
 
-### Label Tag Helper (&lt;label&gt;)
+**Multiple Selection**
+```html
+<select asp-for="SelectedCategories" 
+        asp-items="@Model.Categories" 
+        multiple 
+        class="form-control">
+</select>
+```
+
+---
+
+### 5. Label Tag Helper (`<label>`)
+
+Generates labels with proper `for` attribute.
 
 ```html
 <label asp-for="ProductName"></label>
+<!-- Output: <label for="ProductName">Product Name</label> -->
 ```
 
-- Generates a label for the `ProductName` input field
-- Automatically sets the `for` attribute to match the input's ID
+---
 
-**Example Output**:
+### 6. Textarea Tag Helper (`<textarea>`)
+
+Creates multi-line text input.
 
 ```html
-<label for="ProductName">Product Name</label>
+<textarea asp-for="Address" class="form-control" rows="3"></textarea>
 ```
 
-### Validation Tag Helpers
+---
 
-#### Validation Summary
+### 7. Validation Tag Helpers
 
-```html
-<div asp-validation-summary="All" class="text-danger"></div>
-```
-
-**Options**:
-- `All`: Display all validation errors
-- `ModelOnly`: Display only model-level errors
-- `None`: Don't display validation summary
-
-#### Validation Message
-
+**Validation Message (Field-specific)**
 ```html
 <span asp-validation-for="ProductName" class="text-danger"></span>
 ```
 
-Displays validation messages for a specific property.
+**Validation Summary**
+```html
+<div asp-validation-summary="All" class="text-danger"></div>
+```
 
-### Cache Tag Helper (&lt;cache&gt;)
+**Options for `asp-validation-summary`:**
+- `All` - Display all validation errors
+- `ModelOnly` - Display only model-level errors
+- `None` - Don't display validation summary
 
+---
+
+### 8. Cache Tag Helper (`<cache>`)
+
+Improves performance by caching content.
+
+**Time-based Expiration**
 ```html
 <cache expires-after="@TimeSpan.FromMinutes(10)">
-    <!-- Content to cache -->
+    @await Component.InvokeAsync("PopularProducts")
 </cache>
 ```
 
-- Caches the enclosed content for the specified duration
-- Improves performance for content that doesn't change frequently
-
-**Additional Examples**:
-
+**Sliding Expiration**
 ```html
-<!-- Cache with sliding expiration -->
 <cache expires-sliding="@TimeSpan.FromMinutes(5)">
-    @await Component.InvokeAsync("PopularProducts")
+    @await Component.InvokeAsync("RecentOrders")
 </cache>
+```
 
-<!-- Cache with absolute expiration -->
+**Absolute Expiration**
+```html
 <cache expires-on="@DateTime.Now.AddHours(1)">
     @await Component.InvokeAsync("DailyDeals")
 </cache>
+```
 
-<!-- Cache with vary-by parameters -->
+**Vary by User**
+```html
 <cache vary-by-user="true" expires-after="@TimeSpan.FromMinutes(10)">
     Welcome, @User.Identity.Name
 </cache>
+```
 
+**Vary by Query String**
+```html
 <cache vary-by-query="category,page" expires-after="@TimeSpan.FromMinutes(5)">
-    <!-- Content varies by query string parameters -->
+    <!-- Content varies by query parameters -->
 </cache>
 ```
 
-### Environment Tag Helper (&lt;environment&gt;)
+---
+
+### 9. Environment Tag Helper (`<environment>`)
+
+Conditionally renders content based on environment.
 
 ```html
 <environment include="Development">
@@ -256,57 +292,44 @@ Displays validation messages for a specific property.
 </environment>
 ```
 
-- Conditionally renders content based on the environment
-- `asp-append-version` automatically adds a version query string to the URL in non-development environments for cache busting
+---
 
-### Partial Tag Helper (&lt;partial&gt;)
+### 10. Partial Tag Helper (`<partial>`)
 
+Renders partial views.
+
+**Basic Usage**
 ```html
 <partial name="_ProductCard" model="@product" />
 ```
 
-Renders a partial view with optional model.
-
-**Additional Examples**:
-
+**With ViewData**
 ```html
-<!-- With view data -->
 <partial name="_Navigation" view-data="@ViewData" />
+```
 
-<!-- Optional partial (doesn't error if not found) -->
+**Optional Partial**
+```html
 <partial name="_OptionalHeader" optional="true" />
 ```
 
-### Image Tag Helper (&lt;img&gt;)
+---
+
+### 11. Image Tag Helper (`<img>`)
+
+Adds cache-busting version strings.
 
 ```html
 <img src="~/images/logo.png" asp-append-version="true" alt="Logo" />
 ```
 
-Automatically appends a version query string for cache busting.
-
 ---
 
-## Controllers
+## CRUD Implementation
 
-### Index (Read)
+### Index Action (Read)
 
-**HTTP Verb**: GET
-
-**Purpose**: Displays a list or table of entities (e.g., persons)
-
-**Logic**:
-- Retrieves data from the `PersonsService` using methods like `GetFilteredPersons` and `GetSortedPersons`
-- Populates `ViewBag` with:
-  - `SearchFields`: A dictionary of searchable fields and their display names
-  - `CurrentSearchBy`: The currently selected search field
-  - `CurrentSearchString`: The current search term
-  - `CurrentSortBy`: The current sorting field
-  - `CurrentSortOrder`: The current sort order (ASC or DESC)
-- Returns the Index view with the filtered and sorted data
-
-**Example**:
-
+**Controller**
 ```csharp
 [HttpGet]
 [Route("persons")]
@@ -316,6 +339,7 @@ public IActionResult Index(
     string sortBy = "PersonName",
     string sortOrder = "ASC")
 {
+    // Configure search fields
     ViewBag.SearchFields = new Dictionary<string, string>()
     {
         { nameof(PersonResponse.PersonName), "Person Name" },
@@ -324,11 +348,13 @@ public IActionResult Index(
         { nameof(PersonResponse.Gender), "Gender" }
     };
     
+    // Pass current values to view
     ViewBag.CurrentSearchBy = searchBy;
     ViewBag.CurrentSearchString = searchString;
     ViewBag.CurrentSortBy = sortBy;
     ViewBag.CurrentSortOrder = sortOrder;
     
+    // Get filtered and sorted data
     List<PersonResponse> persons = _personsService.GetFilteredPersons(searchBy, searchString);
     persons = _personsService.GetSortedPersons(persons, sortBy, sortOrder);
     
@@ -336,26 +362,82 @@ public IActionResult Index(
 }
 ```
 
-### Create (Create)
+**View (Index.cshtml)**
+```html
+@model IEnumerable<PersonResponse>
 
-**HTTP Verbs**: GET (Display form), POST (Process submission)
+<h1>Persons</h1>
 
-**Purpose**: Creates a new entity
+<!-- Search Form -->
+<form asp-action="Index" method="get">
+    <div class="row">
+        <div class="col-md-3">
+            <select name="searchBy" class="form-control">
+                @foreach (var field in ViewBag.SearchFields)
+                {
+                    <option value="@field.Key" selected="@(ViewBag.CurrentSearchBy == field.Key)">
+                        @field.Value
+                    </option>
+                }
+            </select>
+        </div>
+        <div class="col-md-6">
+            <input type="text" 
+                   name="searchString" 
+                   class="form-control" 
+                   placeholder="Search..." 
+                   value="@ViewBag.CurrentSearchString" />
+        </div>
+        <div class="col-md-3">
+            <button type="submit" class="btn btn-primary">Search</button>
+            <a asp-action="Index" class="btn btn-secondary">Clear</a>
+        </div>
+    </div>
+</form>
 
-**Logic**:
+<!-- Create Button -->
+<a asp-action="Create" class="btn btn-success mt-3">Create New</a>
 
-**GET**:
-- Retrieves a list of countries from `CountriesService` for populating the "Country" dropdown in the form
-- Returns the Create view
+<!-- Data Table -->
+<table class="table table-striped mt-3">
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Date of Birth</th>
+            <th>Gender</th>
+            <th>Country</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var person in Model)
+        {
+            <tr>
+                <td>@person.PersonName</td>
+                <td>@person.Email</td>
+                <td>@person.DateOfBirth?.ToString("MM/dd/yyyy")</td>
+                <td>@person.Gender</td>
+                <td>@person.Country</td>
+                <td>
+                    <a asp-action="Edit" 
+                       asp-route-personID="@person.PersonID" 
+                       class="btn btn-sm btn-primary">Edit</a>
+                    <a asp-action="Delete" 
+                       asp-route-personID="@person.PersonID" 
+                       class="btn btn-sm btn-danger">Delete</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+```
 
-**POST**:
-- Receives `PersonAddRequest` via model binding
-- Validates the model state
-- If valid, calls `_personsService.AddPerson` to create the new person and redirects to the Index action
-- If invalid, repopulates `ViewBag.Countries` and `ViewBag.Errors` and returns the Create view with error messages
+---
 
-**Example**:
+### Create Action (Create)
 
+**Controller**
 ```csharp
 [HttpGet]
 [Route("persons/create")]
@@ -385,192 +467,7 @@ public IActionResult Create(PersonAddRequest personRequest)
 }
 ```
 
-### Edit (Update)
-
-**HTTP Verbs**: GET (Display form), POST (Process submission)
-
-**Purpose**: Updates an existing entity
-
-**Logic**:
-
-**GET**:
-- Retrieves the person to edit using `_personsService.GetPersonByPersonID`
-- Retrieves a list of countries from `CountriesService` for the dropdown
-- Returns the Edit view with the person's data in a `PersonUpdateRequest`
-
-**POST**:
-- Receives `PersonUpdateRequest` via model binding
-- Validates the model state
-- If valid, calls `_personsService.UpdatePerson` and redirects to the Index action
-- If invalid, repopulates `ViewBag.Countries` and `ViewBag.Errors` and returns the Edit view with error messages
-
-**Example**:
-
-```csharp
-[HttpGet]
-[Route("persons/edit/{personID}")]
-public IActionResult Edit(Guid personID)
-{
-    PersonResponse? personResponse = _personsService.GetPersonByPersonID(personID);
-    
-    if (personResponse == null)
-    {
-        return NotFound();
-    }
-    
-    PersonUpdateRequest personUpdateRequest = personResponse.ToPersonUpdateRequest();
-    ViewBag.Countries = _countriesService.GetAllCountries();
-    
-    return View(personUpdateRequest);
-}
-
-[HttpPost]
-[Route("persons/edit/{personID}")]
-[ValidateAntiForgeryToken]
-public IActionResult Edit(PersonUpdateRequest personRequest)
-{
-    if (!ModelState.IsValid)
-    {
-        ViewBag.Countries = _countriesService.GetAllCountries();
-        ViewBag.Errors = ModelState.Values
-            .SelectMany(v => v.Errors)
-            .Select(e => e.ErrorMessage)
-            .ToList();
-        return View(personRequest);
-    }
-    
-    PersonResponse updatedPerson = _personsService.UpdatePerson(personRequest);
-    return RedirectToAction("Index");
-}
-```
-
-### Delete (Delete)
-
-**HTTP Verbs**: GET (Display confirmation), POST (Perform deletion)
-
-**Purpose**: Deletes an existing entity
-
-**Logic**:
-
-**GET**:
-- Retrieves the person to delete using `_personsService.GetPersonByPersonID`
-- Returns the Delete view to confirm the deletion
-
-**POST**:
-- Receives `PersonUpdateRequest` (containing the PersonID) via model binding
-- Calls `_personsService.DeletePerson` and redirects to the Index action
-
-**Example**:
-
-```csharp
-[HttpGet]
-[Route("persons/delete/{personID}")]
-public IActionResult Delete(Guid personID)
-{
-    PersonResponse? personResponse = _personsService.GetPersonByPersonID(personID);
-    
-    if (personResponse == null)
-    {
-        return NotFound();
-    }
-    
-    return View(personResponse);
-}
-
-[HttpPost]
-[Route("persons/delete/{personID}")]
-[ValidateAntiForgeryToken]
-public IActionResult Delete(PersonUpdateRequest personRequest)
-{
-    PersonResponse? personResponse = _personsService.GetPersonByPersonID(personRequest.PersonID);
-    
-    if (personResponse == null)
-    {
-        return NotFound();
-    }
-    
-    _personsService.DeletePerson(personRequest.PersonID);
-    return RedirectToAction("Index");
-}
-```
-
----
-
-## Views
-
-### Index.cshtml (Read)
-
-Displays a table of persons with search and sort functionality.
-
-```html
-@model IEnumerable<PersonResponse>
-
-<h1>Persons</h1>
-
-<!-- Search Form -->
-<form asp-action="Index" method="get">
-    <div class="row">
-        <div class="col-md-3">
-            <select name="searchBy" class="form-control">
-                @foreach (var field in ViewBag.SearchFields)
-                {
-                    <option value="@field.Key" selected="@(ViewBag.CurrentSearchBy == field.Key)">
-                        @field.Value
-                    </option>
-                }
-            </select>
-        </div>
-        <div class="col-md-6">
-            <input type="text" name="searchString" class="form-control" 
-                   placeholder="Search..." value="@ViewBag.CurrentSearchString" />
-        </div>
-        <div class="col-md-3">
-            <button type="submit" class="btn btn-primary">Search</button>
-            <a asp-action="Index" class="btn btn-secondary">Clear</a>
-        </div>
-    </div>
-</form>
-
-<!-- Create Button -->
-<a asp-action="Create" class="btn btn-success">Create New</a>
-
-<!-- Data Table -->
-<table class="table table-striped">
-    <thead>
-        <tr>
-            <th>
-                <partial name="_GridColumnHeader" 
-                         model="@(new { ColumnName = "PersonName", DisplayName = "Name" })" />
-            </th>
-            <th>
-                <partial name="_GridColumnHeader" 
-                         model="@(new { ColumnName = "Email", DisplayName = "Email" })" />
-            </th>
-            <th>Actions</th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var person in Model)
-        {
-            <tr>
-                <td>@person.PersonName</td>
-                <td>@person.Email</td>
-                <td>
-                    <a asp-action="Edit" asp-route-personID="@person.PersonID" 
-                       class="btn btn-sm btn-primary">Edit</a>
-                    <a asp-action="Delete" asp-route-personID="@person.PersonID" 
-                       class="btn btn-sm btn-danger">Delete</a>
-                </td>
-            </tr>
-        }
-    </tbody>
-</table>
-```
-
-### Create.cshtml
-
-Renders a form for creating a new person.
-
+**View (Create.cshtml)**
 ```html
 @model PersonAddRequest
 
@@ -622,9 +519,9 @@ Renders a form for creating a new person.
         <span asp-validation-for="Address" class="text-danger"></span>
     </div>
     
-    <div class="form-group">
-        <input asp-for="ReceiveNewsLetters" type="checkbox" />
-        <label asp-for="ReceiveNewsLetters"></label>
+    <div class="form-group form-check">
+        <input asp-for="ReceiveNewsLetters" type="checkbox" class="form-check-input" />
+        <label asp-for="ReceiveNewsLetters" class="form-check-label"></label>
     </div>
     
     <button type="submit" class="btn btn-primary">Create</button>
@@ -636,10 +533,50 @@ Renders a form for creating a new person.
 }
 ```
 
-### Edit.cshtml
+---
 
-Similar to Create.cshtml but for editing an existing person.
+### Edit Action (Update)
 
+**Controller**
+```csharp
+[HttpGet]
+[Route("persons/edit/{personID}")]
+public IActionResult Edit(Guid personID)
+{
+    PersonResponse? personResponse = _personsService.GetPersonByPersonID(personID);
+    
+    if (personResponse == null)
+    {
+        return NotFound();
+    }
+    
+    PersonUpdateRequest personUpdateRequest = personResponse.ToPersonUpdateRequest();
+    ViewBag.Countries = _countriesService.GetAllCountries();
+    
+    return View(personUpdateRequest);
+}
+
+[HttpPost]
+[Route("persons/edit/{personID}")]
+[ValidateAntiForgeryToken]
+public IActionResult Edit(PersonUpdateRequest personRequest)
+{
+    if (!ModelState.IsValid)
+    {
+        ViewBag.Countries = _countriesService.GetAllCountries();
+        ViewBag.Errors = ModelState.Values
+            .SelectMany(v => v.Errors)
+            .Select(e => e.ErrorMessage)
+            .ToList();
+        return View(personRequest);
+    }
+    
+    PersonResponse updatedPerson = _personsService.UpdatePerson(personRequest);
+    return RedirectToAction("Index");
+}
+```
+
+**View (Edit.cshtml)**
 ```html
 @model PersonUpdateRequest
 
@@ -651,6 +588,13 @@ Similar to Create.cshtml but for editing an existing person.
     <div asp-validation-summary="All" class="text-danger"></div>
     
     <!-- Same form fields as Create.cshtml -->
+    <div class="form-group">
+        <label asp-for="PersonName"></label>
+        <input asp-for="PersonName" class="form-control" />
+        <span asp-validation-for="PersonName" class="text-danger"></span>
+    </div>
+    
+    <!-- ... other fields ... -->
     
     <button type="submit" class="btn btn-primary">Update</button>
     <a asp-action="Index" class="btn btn-secondary">Cancel</a>
@@ -661,10 +605,44 @@ Similar to Create.cshtml but for editing an existing person.
 }
 ```
 
-### Delete.cshtml
+---
 
-Displays a confirmation message and a form to confirm the deletion.
+### Delete Action (Delete)
 
+**Controller**
+```csharp
+[HttpGet]
+[Route("persons/delete/{personID}")]
+public IActionResult Delete(Guid personID)
+{
+    PersonResponse? personResponse = _personsService.GetPersonByPersonID(personID);
+    
+    if (personResponse == null)
+    {
+        return NotFound();
+    }
+    
+    return View(personResponse);
+}
+
+[HttpPost]
+[Route("persons/delete/{personID}")]
+[ValidateAntiForgeryToken]
+public IActionResult Delete(PersonUpdateRequest personRequest)
+{
+    PersonResponse? personResponse = _personsService.GetPersonByPersonID(personRequest.PersonID);
+    
+    if (personResponse == null)
+    {
+        return NotFound();
+    }
+    
+    _personsService.DeletePerson(personRequest.PersonID);
+    return RedirectToAction("Index");
+}
+```
+
+**View (Delete.cshtml)**
 ```html
 @model PersonResponse
 
@@ -698,26 +676,28 @@ Displays a confirmation message and a form to confirm the deletion.
     </div>
 </div>
 
-<form asp-action="Delete" asp-route-personID="@Model.PersonID" method="post">
-    <button type="submit" class="btn btn-danger">Delete</button>
+<form asp-action="Delete" asp-route-personID="@Model.PersonID" method="post" class="mt-3">
+    <button type="submit" class="btn btn-danger">Confirm Delete</button>
     <a asp-action="Index" class="btn btn-secondary">Cancel</a>
 </form>
 ```
 
 ---
 
-## Client-Side Validations
+## Validation
 
-Client-side validations are enabled in these views through the inclusion of jQuery, jQuery Validate, and jQuery Unobtrusive Validation libraries in the `@section scripts` block.
+### Client-Side Validation
 
-### Benefits
+Enable instant feedback without server roundtrips.
 
-**Instant Feedback**: Validation messages appear immediately when the user interacts with the form fields.
+**Required Scripts**
+```html
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
+```
 
-**Reduced Server Load**: Validations are performed on the client-side, reducing the number of round trips to the server.
-
-### Required Scripts
-
+**Or manually include:**
 ```html
 @section Scripts {
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
@@ -726,167 +706,52 @@ Client-side validations are enabled in these views through the inclusion of jQue
 }
 ```
 
-Or use the validation scripts partial:
+### Validation Flow
 
-```html
-@section Scripts {
-    <partial name="_ValidationScriptsPartial" />
+**Client-Side (Optional but Recommended)**
+1. User fills form and submits
+2. JavaScript validation checks run
+3. If errors exist, they're displayed immediately
+4. Submission is prevented until valid
+
+**Server-Side (Always Required)**
+1. Request reaches server
+2. Model binding creates object from form data
+3. Data annotations are validated
+4. Errors added to `ModelState`
+5. Controller checks `ModelState.IsValid`
+6. If invalid, view is returned with errors
+7. If valid, operation proceeds
+
+### Post-Redirect-Get Pattern
+
+After successful POST, redirect to prevent re-submission:
+
+```csharp
+[HttpPost]
+public IActionResult Create(PersonAddRequest request)
+{
+    if (!ModelState.IsValid)
+    {
+        return View(request); // Return view with errors
+    }
+    
+    _service.AddPerson(request);
+    return RedirectToAction("Index"); // Redirect after success
 }
 ```
 
 ---
 
-## HttpPost Action Method Submission Process
-
-### 1. Form Submission
-
-The user fills out the form and clicks the submit button.
-
-### 2. Client-Side Validation (Optional)
-
-If enabled, JavaScript validation checks are performed before the form is submitted to the server. If there are errors, they are displayed immediately, and the submission is prevented.
-
-### 3. Request Sent to Server
-
-If there are no client-side errors, the form data is sent to the server via a POST request.
-
-### 4. Model Binding
-
-ASP.NET Core's model binding system extracts the form data and attempts to create a model object (`PersonAddRequest` or `PersonUpdateRequest`) based on the form field names.
-
-### 5. Model Validation
-
-Data annotations and custom validation rules are applied to the model object. If errors are found, they are added to the `ModelState` object.
-
-### 6. Controller Action Logic
-
-**If ModelState.IsValid is true**:
-- The action performs the appropriate CRUD operation (create, update, delete) using the service layer
-
-**If ModelState.IsValid is false**:
-- The action typically returns the view again, repopulating the form with the user's input and displaying error messages
-
-### 7. Redirect (Optional)
-
-After a successful POST request, the action often redirects to another page (e.g., the "Index" view) to prevent accidental re-submissions (Post-Redirect-Get pattern).
-
----
-
-## Key Points to Remember
-
-### Tag Helpers
-
-**Purpose**: Server-side code that modifies HTML elements to include server-side logic
-
-**Benefits**:
-- HTML-friendly syntax
-- Strong typing and IntelliSense
-- Code reuse
-- Reduced server round-trips
-
-**Common Tag Helpers**:
-- `a`: Creates links (e.g., `asp-controller`, `asp-action`)
-- `form`: Generates HTML forms (e.g., `asp-controller`, `asp-action`, `method`)
-- `input`, `textarea`, `select`: Bind to model properties (e.g., `asp-for`)
-- `label`: Creates labels for form fields (`asp-for`)
-- `cache`: Caches a portion of the view
-- `partial`: Renders a partial view
-- `environment`: Conditionally renders content based on the environment
-
----
-
-## CRUD Operations with Tag Helpers
-
-### Index (Read)
-
-#### Anchor (a): Create links to Create, Edit, and Delete actions
-
-```html
-<a asp-action="Create">Create</a>
-<a asp-action="Edit" asp-route-id="@item.Id">Edit</a> 
-<a asp-action="Delete" asp-route-id="@item.Id">Delete</a>
-```
-
-#### Form (form): Create a form for filtering or searching
-
-```html
-<form asp-action="Index" method="get">
-    <input type="text" name="searchString" />
-    <button type="submit">Search</button>
-</form>
-```
-
-### Create & Edit
-
-#### Form: Create the form for submitting data
-
-```html
-<form asp-action="Create" method="post"> 
-    <!-- form fields -->
-</form>
-```
-
-#### Input, Textarea, Select: Bind to model properties
-
-```html
-<input asp-for="Name" />
-<textarea asp-for="Description"></textarea>
-<select asp-for="CategoryId" asp-items="ViewBag.Categories"></select>
-```
-
-#### Label: Generate labels for input fields
-
-```html
-<label asp-for="Name"></label>
-```
-
-#### Span (Validation): Display validation messages
-
-```html
-<span asp-validation-for="Name"></span>
-```
-
-#### Div (Validation Summary): Summarize validation errors
-
-```html
-<div asp-validation-summary="All"></div>
-```
-
-### Delete
-
-#### Form: Create a form that submits a delete request
-
-```html
-<form asp-action="Delete" asp-route-id="@Model.Id" method="post">
-    <button type="submit">Delete</button>
-</form>
-```
-
----
-
-## Comparison Table: Tag Helpers vs HTML Helpers
-
-| Aspect | Tag Helpers | HTML Helpers |
-|--------|-------------|--------------|
-| **Syntax** | HTML-like | C# method calls |
-| **Readability** | More readable | Less readable |
-| **IntelliSense** | Full support | Limited support |
-| **Type Safety** | Compile-time | Compile-time |
-| **Example** | `<input asp-for="Name" />` | `@Html.TextBoxFor(m => m.Name)` |
-| **Mixing with HTML** | Easy | Harder |
-| **Learning Curve** | Easier for HTML devs | Easier for C# devs |
-
-**Recommendation**: Use Tag Helpers for new projects as they provide better readability and are more HTML-friendly.
-
----
-
 ## Custom Tag Helpers
 
-You can create your own custom tag helpers to encapsulate reusable HTML generation logic.
+### Creating a Custom Tag Helper
 
-### Example: Email Tag Helper
+**Example: Email Tag Helper**
 
 ```csharp
+using Microsoft.AspNetCore.Razor.TagHelpers;
+
 [HtmlTargetElement("email")]
 public class EmailTagHelper : TagHelper
 {
@@ -901,95 +766,195 @@ public class EmailTagHelper : TagHelper
 }
 ```
 
-**Usage**:
-
+**Usage**
 ```html
 <email address="support@example.com"></email>
 ```
 
-**Output**:
-
+**Output**
 ```html
 <a href="mailto:support@example.com">support@example.com</a>
 ```
 
+### Registering Custom Tag Helpers
+
+In `_ViewImports.cshtml`:
+
+```csharp
+@addTagHelper *, YourAssemblyName
+```
+
 ---
 
-## Interview Focus Areas
+## Best Practices
 
-### Understanding
+### ✅ Do's
 
-Explain the benefits of tag helpers over traditional HTML helpers:
-- More HTML-friendly syntax
-- Better IntelliSense support
-- Easier to read and maintain
-- Natural integration with HTML
+**Use Tag Helpers Consistently**
+- Adopt tag helpers throughout your application
+- Don't mix tag helpers and HTML helpers unnecessarily
 
-### Usage
+**Leverage Strong Typing**
+- Always use `asp-for` for model binding
+- Take advantage of IntelliSense and compile-time checking
 
-Demonstrate how to use common tag helpers in CRUD scenarios:
-- Form creation and submission
-- Data binding with `asp-for`
-- Generating links with routing
-- Validation display
+**Validate on Both Sides**
+- Client-side for user experience
+- Server-side for security (always required)
 
-### Model Binding and Validation
+**Secure POST Actions**
+- Always use `[ValidateAntiForgeryToken]`
+- Protect against CSRF attacks
 
-Show how to use tag helpers to bind to models and display validation errors:
-- Using `asp-for` for two-way binding
-- Displaying validation messages with `asp-validation-for`
-- Showing validation summary with `asp-validation-summary`
+**Keep Views Simple**
+- Views should focus on presentation
+- Move complex logic to controllers or services
 
-### Best Practices
+**Use Partial Views**
+- Create reusable components
+- Keep views DRY (Don't Repeat Yourself)
 
-Discuss how to write clean, maintainable, and reusable code with tag helpers:
-- Keep views simple and focused on presentation
-- Use strongly typed models
-- Leverage partial views for reusability
-- Consistent use of tag helpers throughout the application
+**Handle Errors Gracefully**
+- Display validation errors clearly
+- Provide helpful feedback to users
 
-### Performance Considerations
+**Follow Naming Conventions**
+- Use consistent property naming
+- Match model properties with form fields
 
-Explain how tag helpers can impact performance and how to mitigate potential issues:
-- Use caching tag helper for expensive operations
-- Avoid excessive nesting
-- Profile and optimize rendering performance
-- Use async operations where appropriate
+### ❌ Don'ts
 
-### Security
+**Don't Overuse Tag Helpers**
+- Not every HTML element needs a tag helper
+- Use them where they add value
 
-Emphasize the importance of input validation and output encoding to prevent XSS vulnerabilities:
-- Always use `[ValidateAntiForgeryToken]` for POST actions
+**Don't Mix Approaches**
+- Stick with tag helpers or HTML helpers, not both
+- Maintain consistency within a view
+
+**Don't Skip Server Validation**
+- Client-side validation can be bypassed
+- Always validate on the server
+
+**Don't Expose Sensitive Data**
+- Be careful with hidden fields
+- Don't trust client-side data
+
+**Don't Nest Too Deeply**
+- Keep HTML structure readable
+- Extract complex sections to partials
+
+**Don't Forget Cache Busting**
+- Use `asp-append-version` for static files
+- Prevent stale resource loading
+
+---
+
+## Performance Considerations
+
+### Caching Strategies
+
+**Use Cache Tag Helper**
+```html
+<cache expires-after="@TimeSpan.FromMinutes(10)">
+    @* Expensive operation *@
+</cache>
+```
+
+**Minimize Tag Helper Overhead**
+- Tag helpers execute on every request
+- Use caching for expensive operations
+- Profile rendering performance
+
+**Async Operations**
+- Use `async/await` where appropriate
+- Don't block on I/O operations
+
+---
+
+## Security Best Practices
+
+### Input Validation
 - Validate all user input
-- Use tag helpers which automatically encode output
-- Implement proper authorization and authentication
+- Use data annotations
+- Implement custom validation when needed
+
+### Output Encoding
+- Tag helpers automatically encode output
+- Prevents XSS vulnerabilities
+- Don't bypass encoding unless necessary
+
+### Anti-Forgery Tokens
+```csharp
+[HttpPost]
+[ValidateAntiForgeryToken]
+public IActionResult Create(PersonAddRequest request)
+{
+    // Action implementation
+}
+```
+
+### Authorization
+- Implement proper authentication
+- Use `[Authorize]` attribute
+- Check permissions before allowing operations
+
+---
+
+## Quick Reference Cheat Sheet
+
+### Common Tag Helper Patterns
+
+**Link to Action**
+```html
+<a asp-action="Edit" asp-route-id="@item.Id">Edit</a>
+```
+
+**Form Submission**
+```html
+<form asp-action="Create" method="post">
+    <input asp-for="Name" />
+    <span asp-validation-for="Name"></span>
+    <button type="submit">Submit</button>
+</form>
+```
+
+**Dropdown List**
+```html
+<select asp-for="CategoryId" asp-items="@ViewBag.Categories">
+    <option value="">-- Select --</option>
+</select>
+```
+
+**Validation Summary**
+```html
+<div asp-validation-summary="All" class="text-danger"></div>
+```
+
+**Partial View**
+```html
+<partial name="_ViewName" model="@Model" />
+```
+
+**Environment-Specific Content**
+```html
+<environment include="Development">
+    <!-- Development only -->
+</environment>
+```
 
 ---
 
 ## Additional Resources
 
-### Common Tag Helper Attributes
+### Official Documentation
+- [ASP.NET Core Tag Helpers](https://docs.microsoft.com/aspnet/core/mvc/views/tag-helpers/intro)
+- [Built-in Tag Helpers](https://docs.microsoft.com/aspnet/core/mvc/views/tag-helpers/built-in/)
+- [Authoring Tag Helpers](https://docs.microsoft.com/aspnet/core/mvc/views/tag-helpers/authoring)
 
-| Attribute | Purpose | Example |
-|-----------|---------|---------|
-| `asp-for` | Bind to model property | `<input asp-for="Name" />` |
-| `asp-action` | Specify action method | `<a asp-action="Index">` |
-| `asp-controller` | Specify controller | `<a asp-controller="Home">` |
-| `asp-route-*` | Add route parameters | `<a asp-route-id="5">` |
-| `asp-items` | Populate select options | `<select asp-items="@Model.List">` |
-| `asp-validation-for` | Show validation message | `<span asp-validation-for="Name">` |
-| `asp-validation-summary` | Show validation summary | `<div asp-validation-summary="All">` |
-| `asp-append-version` | Add version for cache busting | `<link asp-append-version="true" />` |
-
-### Best Practices Checklist
-
-- ✅ Use tag helpers consistently throughout your application
-- ✅ Prefer strongly typed models over ViewBag/ViewData
-- ✅ Always validate user input on both client and server side
-- ✅ Use `[ValidateAntiForgeryToken]` for all POST actions
-- ✅ Implement proper error handling and user feedback
-- ✅ Keep views focused on presentation logic only
-- ✅ Use partial views for reusable components
-- ✅ Test your views and tag helpers
-- ✅ Follow consistent naming conventions
-- ✅ Document custom tag helpers
+### Next Steps
+1. Practice implementing CRUD operations
+2. Create custom tag helpers for your needs
+3. Explore advanced validation scenarios
+4. Learn about partial views and view components
+5. Study caching strategies
